@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LIBRANZAYA v7 — Sistema de Préstamos</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- docx via esm.sh que sí sirve desde CDN como módulo -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a2e;background:#f0f4ff;min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:16px}
+.header{background:linear-gradient(135deg,#1F497D 0%,#2d6ab5 100%);color:#fff;border-radius:14px;padding:18px 24px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.header h1{font-size:20px;font-weight:700;letter-spacing:.02em}
+.header p{font-size:12px;opacity:.75;margin-top:2px}
+.logo-box{background:rgba(255,255,255,.18);border-radius:10px;padding:8px 14px;font-size:22px;font-weight:800;letter-spacing:.05em}
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:#fff;border-radius:12px;padding:6px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.tab{padding:8px 16px;cursor:pointer;font-size:13px;color:#555;border-radius:8px;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex:1;justify-content:center}
+.tab.active{background:#1F497D;color:#fff;font-weight:500}
+.tab:hover:not(.active){background:#f0f4ff}
+.panel{display:none}
+.panel.active{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px}
+.field label{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{height:38px;border:1.5px solid #dde3f0;border-radius:9px;padding:0 12px;font-size:13px;background:#fff;color:#1a1a2e;width:100%;transition:border .15s}
+.field input:focus,.field select:focus{outline:none;border-color:#1F497D;box-shadow:0 0 0 3px rgba(31,73,125,.1)}
+.btn{height:36px;padding:0 16px;border:1.5px solid #dde3f0;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;background:#fff;color:#333;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s}
+.btn:hover{background:#f0f4ff;border-color:#1F497D;color:#1F497D}
+.btn.primary{background:#1F497D;color:#fff;border-color:#1F497D}
+.btn.primary:hover{background:#2d6ab5}
+.btn.danger{color:#c0392b;border-color:#e8c0bc}
+.btn.danger:hover{background:#fff0ee;border-color:#c0392b}
+.btn.success{color:#1a7a4a;border-color:#b0dfc0}
+.btn.success:hover{background:#f0faf4;border-color:#1a7a4a}
+.section-title{font-size:11px;font-weight:700;color:#1F497D;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:6px}
+.section-title::after{content:'';flex:1;height:1px;background:#dde3f0}
+.card{background:#fff;border:1.5px solid #dde3f0;border-radius:12px;padding:16px 20px}
+.avatar{width:38px;height:38px;border-radius:50%;background:#e8f0fd;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#1F497D;flex-shrink:0}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;background:#e8f0fd;color:#1F497D;font-weight:600;white-space:nowrap}
+.badge.zero{background:#f2f2f2;color:#888}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 10px;font-weight:600;font-size:11px;color:#888;border-bottom:2px solid #f0f0f5;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+td{padding:7px 10px;border-bottom:1px solid #f5f5fb;color:#222}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8faff}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.metric{background:#fff;border:1.5px solid #dde3f0;border-radius:11px;padding:12px 16px}
+.metric .label{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.metric .value{font-size:20px;font-weight:700;color:#1a1a2e}
+.metric .value.green{color:#1a7a4a}
+.metric .value.blue{color:#1F497D}
+.empty{color:#aaa;font-size:13px;text-align:center;padding:2.5rem;background:#fafbff;border-radius:10px;border:1.5px dashed #dde3f0}
+.pitem{border:1.5px solid #dde3f0;border-radius:11px;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff}
+.pitem:hover{border-color:#1F497D;box-shadow:0 2px 8px rgba(31,73,125,.08)}
+.ditem{border:1.5px solid #dde3f0;border-radius:11px;padding:10px 14px;display:flex;align-items:center;gap:10px;background:#fff}
+.ditem:hover{background:#f8faff;border-color:#b8ccea}
+.toolbar{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.month-nav{display:flex;align-items:center;gap:8px}
+.month-label{font-size:15px;font-weight:600;min-width:160px;text-align:center;color:#1F497D}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.saving-indicator{font-size:12px;padding:6px 12px;border-radius:8px;background:#1a7a4a;color:#fff;opacity:0;transition:opacity .3s,background .3s;font-weight:500}
+.saving-indicator.show{opacity:1}
+.toast{position:fixed;bottom:24px;right:24px;background:#1F497D;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.2);opacity:0;transform:translateY(20px);transition:all .3s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.badge.pagado{background:#e8f8ee;color:#1a7a4a}
+.badge.pendiente{background:#fff4e5;color:#b05a00}
+.check-btn{width:28px;height:28px;border-radius:6px;border:1.5px solid #dde3f0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.check-btn.checked{background:#1a7a4a;border-color:#1a7a4a;color:#fff}
+.check-btn:hover{border-color:#1a7a4a}
+.hist-item{border:1.5px solid #b0dfc0;border-radius:11px;padding:12px 16px;background:#f0faf4;margin-bottom:8px}
+.progress-bar{height:6px;background:#dde3f0;border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#1a7a4a,#2ecc71);border-radius:3px;transition:width .3s}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="logo-box">LY</div>
+  <div>
+    <h1>LIBRANZAYA v7 — Sistema de Préstamos de Libranza</h1>
+    <p>Control de deudores · Registro de pagos · Amortización · Historial · Contratos Word</p>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+    <div class="saving-indicator" id="saving-ind"><i class="ti ti-check"></i> Guardado</div>
+    <button class="btn" onclick="exportarDatos()" title="Exportar respaldo JSON"><i class="ti ti-database-export"></i> Exportar</button>
+    <label class="btn" style="cursor:pointer" title="Importar respaldo JSON"><i class="ti ti-database-import"></i> Importar<input type="file" accept=".json" style="display:none" onchange="importarDatos(event)"></label>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('deudores')"><i class="ti ti-users"></i> Deudores</div>
+  <div class="tab" onclick="switchTab('prestamos')"><i class="ti ti-cash"></i> Préstamos</div>
+  <div class="tab" onclick="switchTab('pagos')"><i class="ti ti-checkbox"></i> Pagos</div>
+  <div class="tab" onclick="switchTab('amortizacion')"><i class="ti ti-table"></i> Amortización</div>
+  <div class="tab" onclick="switchTab('mensual')"><i class="ti ti-calendar-stats"></i> Resumen mensual</div>
+  <div class="tab" onclick="switchTab('historial')"><i class="ti ti-archive"></i> Historial</div>
+  <div class="tab" onclick="switchTab('micapital')" style="background:#fff4e5;color:#b05a00;font-weight:600"><i class="ti ti-chart-pie"></i> Mi Capital</div>
+</div>
+
+<!-- DEUDORES -->
+<div class="panel active" id="panel-deudores">
+  <div class="section-title">Nuevo deudor</div>
+  <div class="card">
+    <div class="row">
+      <div class="field"><label>Nombre completo *</label><input id="d-nombre" placeholder="Ej. Adolfo Jaramillo Díaz"/></div>
+      <div class="field" style="max-width:160px"><label>Cédula *</label><input id="d-cc" placeholder="85477929"/></div>
+      <div class="field"><label>Empresa</label><input id="d-empresa" placeholder="OPERTMAS SAS"/></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field"><label>NIT empresa</label><input id="d-nit" placeholder="900.393.553-5"/></div>
+      <div class="field"><label>Teléfono empleado</label><input id="d-tel" placeholder="300 000 0000"/></div>
+      <div class="field"><label>Correo empleado</label><input id="d-email" placeholder="correo@mail.com"/></div>
+      <div class="field"><label>Dirección</label><input id="d-dir" placeholder="Kr 43 # 9f-101"/></div>
+    </div>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end">
+      <button class="btn primary" onclick="agregarDeudor()"><i class="ti ti-plus"></i> Agregar deudor</button>
+    </div>
+  </div>
+  <div class="section-title">Deudores registrados</div>
+  <div id="lista-deudores"><div class="empty">Aún no hay deudores registrados.</div></div>
+</div>
+
+<!-- PRÉSTAMOS -->
+<div class="panel" id="panel-prestamos">
+  <div class="section-title">Nuevo préstamo</div>
+  <div class="card">
+    <div class="row">
+      <div class="field"><label>Deudor *</label>
+        <select id="p-deudor"><option value="">— Seleccionar —</option></select>
+      </div>
+      <div class="field" style="max-width:160px"><label>Valor crédito ($) *</label><input id="p-valor" type="number" placeholder="2000000"/></div>
+      <div class="field" style="max-width:130px"><label>Tasa mensual (%) *</label><input id="p-tasa" type="number" step="0.01" placeholder="3"/></div>
+      <div class="field" style="max-width:120px"><label>Plazo (meses) *</label><input id="p-plazo" type="number" placeholder="10"/></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field" style="max-width:150px"><label>G. Administrativo ($)</label><input id="p-gadm" type="number" placeholder="6000"/></div>
+      <div class="field" style="max-width:130px"><label>GMF ($)</label><input id="p-gmf" type="number" placeholder="667"/></div>
+      <div class="field" style="max-width:160px"><label>Fecha primer pago *</label><input id="p-fecha" type="date"/></div>
+      <div class="field"><label>Tipo de crédito</label><input id="p-tipo" placeholder="LIBRE INVERSIÓN"/></div>
+      <div class="field"><label>Ciudad</label><input id="p-ciudad" placeholder="Santa Marta"/></div>
+    </div>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end">
+      <button class="btn primary" onclick="agregarPrestamo()"><i class="ti ti-plus"></i> Crear préstamo</button>
+    </div>
+  </div>
+  <div class="section-title">Préstamos activos</div>
+  <div id="lista-prestamos"><div class="empty">Aún no hay préstamos registrados.</div></div>
+</div>
+
+<!-- PAGOS -->
+<div class="panel" id="panel-pagos">
+  <div class="toolbar">
+    <div class="field" style="max-width:320px;margin:0"><label>Seleccionar préstamo activo</label>
+      <select id="pg-prestamo" onchange="renderPagos()"><option value="">— Seleccionar —</option></select>
+    </div>
+  </div>
+  <div id="pagos-summary" style="display:none">
+    <div class="metrics" id="pagos-metrics"></div>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th style="width:36px"></th>
+          <th>#</th><th>Fecha programada</th>
+          <th class="num">Cuota</th><th class="num">Interés</th>
+          <th class="num">Capital</th><th class="num">Total</th>
+          <th>Fecha de pago</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="pagos-body"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn" onclick="marcarTodasPagadas()"><i class="ti ti-checks"></i> Marcar todas pagadas</button>
+    </div>
+  </div>
+  <div id="pagos-empty" class="empty">Selecciona un préstamo para registrar sus pagos.</div>
+</div>
+
+<!-- HISTORIAL -->
+<div class="panel" id="panel-historial">
+  <div class="section-title">Créditos finalizados</div>
+  <div id="historial-metrics" class="metrics" style="margin-bottom:4px"></div>
+  <div id="lista-historial"><div class="empty"><i class="ti ti-archive" style="font-size:28px;opacity:.3"></i><br>Aún no hay créditos finalizados.</div></div>
+</div>
+
+
+<div class="panel" id="panel-amortizacion">
+  <div class="toolbar">
+    <div class="field" style="max-width:300px;margin:0"><label>Seleccionar préstamo</label>
+      <select id="a-prestamo" onchange="renderAmortizacion()"><option value="">— Seleccionar —</option></select>
+    </div>
+    <button class="btn" onclick="exportarAmortizacion()"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+    <button class="btn success" onclick="generarContratoDesdeAmort()"><i class="ti ti-file-word"></i> Generar contrato Word</button>
+  </div>
+  <div id="amort-summary" style="display:none">
+    <div class="metrics" id="amort-metrics"></div>
+    <div class="card" style="overflow-x:auto">
+      <table id="amort-table">
+        <thead><tr>
+          <th>#</th><th>Fecha pago</th><th class="num">Saldo inicial</th>
+          <th class="num">Cuota</th><th class="num">Interés</th>
+          <th class="num">Capital</th><th class="num">Saldo final</th>
+          <th class="num">Total a cobrar</th>
+        </tr></thead>
+        <tbody id="amort-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="amort-empty" class="empty">Selecciona un préstamo para ver su tabla de amortización.</div>
+</div>
+
+<!-- RESUMEN MENSUAL -->
+<div class="panel" id="panel-mensual">
+  <div class="toolbar">
+    <div class="month-nav">
+      <button class="btn" onclick="cambiarMes(-1)"><i class="ti ti-chevron-left"></i></button>
+      <div class="month-label" id="mes-label">—</div>
+      <button class="btn" onclick="cambiarMes(1)"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <button class="btn" onclick="exportarMensual()"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+    <button class="btn primary" onclick="reporteEmpresa()"><i class="ti ti-building"></i> Reporte para Empresa</button>
+  </div>
+  <div class="metrics" id="mensual-metrics"></div>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Deudor</th><th>Empresa</th><th>Préstamo</th>
+        <th class="num">Cuota</th><th class="num">Interés</th>
+        <th class="num">Capital</th><th class="num">G.Adm</th>
+        <th class="num">GMF</th><th class="num">Total</th><th>Período</th>
+      </tr></thead>
+      <tbody id="mensual-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MI CAPITAL -->
+<div class="panel" id="panel-micapital">
+  <div class="section-title"><i class="ti ti-chart-pie"></i> Resumen de Inversión y Rendimientos</div>
+  <div id="capital-global-metrics" class="metrics" style="margin-bottom:14px"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px">Desglose por componente</div>
+      <div id="capital-desglose-body"></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px">Proyección cobros próximos 6 meses</div>
+      <div id="capital-proyeccion-body"></div>
+    </div>
+  </div>
+  <div class="section-title">Detalle por préstamo activo</div>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Deudor</th><th>Empresa</th>
+        <th class="num">Capital original</th>
+        <th class="num">Cap. recuperado</th>
+        <th class="num">Cap. pendiente</th>
+        <th class="num">Intereses cobrados</th>
+        <th class="num">Intereses por cobrar</th>
+        <th class="num">Adm. cobradas</th>
+        <th class="num">Adm. por cobrar</th>
+        <th class="num">Avance</th>
+      </tr></thead>
+      <tbody id="capital-tabla-body"></tbody>
+      <tfoot id="capital-tabla-foot"></tfoot>
+    </table>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn" onclick="exportarCapital()"><i class="ti ti-file-spreadsheet"></i> Exportar Excel</button>
+  </div>
+  <div id="capital-historial-section" style="margin-top:14px"></div>
+</div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ESTADO Y PERSISTENCIA — Google Apps Script (nube)
+// ══════════════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycby6foWE8nat5eAtvucY1jPz6Kc21wWv27YhK0VM_BvR1TgjOmLkwIDz2a3h9Y-VDjKtvw/exec';
+
+let deudores=[], prestamos=[], historial=[];
+let pagos={};
+let mesActual=new Date(); mesActual.setDate(1);
+let saveTimer=null;
+let _guardandoNube=false;
+
+function mostrarEstado(msg, color='#1F497D'){
+  const ind=document.getElementById('saving-ind');
+  ind.textContent=msg;
+  ind.style.background=color;
+  ind.classList.add('show');
+  setTimeout(()=>ind.classList.remove('show'),3000);
+}
+
+async function apiCall(params){
+  const url=API_URL+'?'+params;
+  const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
+  const resp=await fetch(proxy);
+  const json=await resp.json();
+  return JSON.parse(json.contents);
+}
+
+async function cargarDatos(){
+  mostrarEstado('⏳ Cargando desde la nube…','#b05a00');
+  try{
+    const data=await apiCall('action=cargar');
+    if(data.error) throw new Error(data.error);
+    deudores=data.deudores||[];
+    prestamos=data.prestamos||[];
+    historial=data.historial||[];
+    pagos=data.pagos||{};
+    mostrarEstado('☁️ Datos cargados','#1a7a4a');
+  }catch(e){
+    try{
+      deudores=JSON.parse(localStorage.getItem('lib2_d')||'[]');
+      prestamos=JSON.parse(localStorage.getItem('lib2_p')||'[]');
+      historial=JSON.parse(localStorage.getItem('lib2_h')||'[]');
+      pagos=JSON.parse(localStorage.getItem('lib2_pg')||'{}');
+      mostrarEstado('⚠️ Sin nube, datos locales','#c0392b');
+    }catch(e2){}
+  }
+  renderDeudores();
+  renderMensual();
+}
+
+function save(){
+  clearTimeout(saveTimer);
+  try{
+    localStorage.setItem('lib2_d',JSON.stringify(deudores));
+    localStorage.setItem('lib2_p',JSON.stringify(prestamos));
+    localStorage.setItem('lib2_h',JSON.stringify(historial));
+    localStorage.setItem('lib2_pg',JSON.stringify(pagos));
+  }catch(e){}
+  saveTimer=setTimeout(async()=>{
+    if(_guardandoNube) return;
+    _guardandoNube=true;
+    mostrarEstado('☁️ Guardando…','#b05a00');
+    try{
+      await apiCall('action=guardarD&data='+encodeURIComponent(JSON.stringify(deudores)));
+      await apiCall('action=guardarP&data='+encodeURIComponent(JSON.stringify(prestamos)));
+      await apiCall('action=guardarH&data='+encodeURIComponent(JSON.stringify(historial)));
+      await apiCall('action=guardarPG&data='+encodeURIComponent(JSON.stringify(pagos)));
+      mostrarEstado('✅ Guardado en la nube','#1a7a4a');
+    }catch(e){
+      mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
+    }
+    _guardandoNube=false;
+  },800);
+}
+
+function exportarDatos(){
+  const blob=new Blob([JSON.stringify({deudores,prestamos,historial,pagos},null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='libranzaya_respaldo_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  toast('Respaldo exportado correctamente');
+}
+
+function importarDatos(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.deudores && data.prestamos){
+        deudores=data.deudores;
+        prestamos=data.prestamos;
+        historial=data.historial||[];
+        pagos=data.pagos||{};
+        save();
+        renderDeudores();renderMensual();renderPrestamos();renderHistorial();
+        toast('Datos importados: '+deudores.length+' deudores, '+prestamos.length+' préstamos, '+historial.length+' en historial');
+      }else{alert('Archivo inválido.');}
+    }catch(err){alert('Error al leer el archivo.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILIDADES
+// ══════════════════════════════════════════════════════════════
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+function fmt(n){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n)}
+function fmtDate(d){if(!d)return'';let dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})}
+function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()}
+function calcCuota(valor,tasa,periodos){let r=tasa/100;return valor*(r*Math.pow(1+r,periodos))/(Math.pow(1+r,periodos)-1);}
+function fmtMoney(n){return new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Math.round(n))}
+
+function generarAmortizacion(p){
+  let cuota=calcCuota(p.valor,p.tasa,p.plazo);
+  let r=p.tasa/100,saldo=p.valor,rows=[];
+  let fecha=new Date(p.fechaInicio+'T12:00:00');
+  for(let i=1;i<=p.plazo;i++){
+    let interes=saldo*r,capital=cuota-interes,saldoFinal=Math.max(0,saldo-capital),total=cuota+p.gadm+p.gmf;
+    rows.push({periodo:i,fecha:fecha.toISOString().split('T')[0],saldoInicial:saldo,cuota,interes,capital,saldoFinal,total});
+    saldo=saldoFinal;fecha=new Date(fecha);fecha.setMonth(fecha.getMonth()+1);
+  }
+  return rows;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════
+function switchTab(t){
+  const tabs=['deudores','prestamos','pagos','amortizacion','mensual','historial','micapital'];
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',tabs[i]===t));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  if(t==='prestamos'){renderPrestamos();syncSelectDeudores();}
+  if(t==='pagos'){syncSelectPagos();renderPagos();}
+  if(t==='amortizacion'){syncSelectAmort();renderAmortizacion();}
+  if(t==='mensual'){renderMensual();}
+  if(t==='deudores'){renderDeudores();}
+  if(t==='historial'){renderHistorial();}
+  if(t==='micapital'){renderCapital();}
+}
+
+// ══════════════════════════════════════════════════════════════
+// DEUDORES
+// ══════════════════════════════════════════════════════════════
+function agregarDeudor(){
+  let nombre=document.getElementById('d-nombre').value.trim();
+  let cc=document.getElementById('d-cc').value.trim();
+  if(!nombre||!cc){alert('Nombre y cédula son obligatorios.');return;}
+  deudores.push({id:Date.now(),nombre,cc,
+    empresa:document.getElementById('d-empresa').value.trim(),
+    nit:document.getElementById('d-nit').value.trim(),
+    tel:document.getElementById('d-tel').value.trim(),
+    email:document.getElementById('d-email').value.trim(),
+    dir:document.getElementById('d-dir').value.trim()
+  });
+  save();renderDeudores();
+  ['d-nombre','d-cc','d-empresa','d-nit','d-tel','d-email','d-dir'].forEach(id=>document.getElementById(id).value='');
+  toast('Deudor registrado correctamente');
+}
+
+function eliminarDeudor(id){
+  if(!confirm('¿Eliminar este deudor, todos sus préstamos activos e historial?'))return;
+  // limpiar pagos de sus préstamos
+  prestamos.filter(p=>p.deudorId===id).forEach(p=>{delete pagos[p.id];});
+  historial.filter(h=>h.deudorId===id).forEach(h=>{delete pagos[h.id];});
+  deudores=deudores.filter(d=>d.id!==id);
+  prestamos=prestamos.filter(p=>p.deudorId!==id);
+  historial=historial.filter(h=>h.deudorId!==id);
+  save();renderDeudores();toast('Deudor eliminado');
+}
+
+function renderDeudores(){
+  let el=document.getElementById('lista-deudores');
+  if(!deudores.length){el.innerHTML='<div class="empty"><i class="ti ti-users" style="font-size:28px;opacity:.3"></i><br>Aún no hay deudores registrados.</div>';return;}
+  el.innerHTML=deudores.map(d=>{
+    let cntActivo=prestamos.filter(p=>p.deudorId===d.id).length;
+    let cntHist=historial.filter(h=>h.deudorId===d.id).length;
+    return`<div class="ditem" style="margin-bottom:8px">
+      <div class="avatar">${initials(d.nombre)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${d.nombre}</div>
+        <div style="font-size:11px;color:#888">${d.cc}${d.empresa?' · '+d.empresa:''}${d.tel?' · '+d.tel:''}</div>
+      </div>
+      <span class="badge ${cntActivo?'':'zero'}">${cntActivo} activo${cntActivo!==1?'s':''}</span>
+      ${cntHist?`<span class="badge pagado">${cntHist} finalizado${cntHist!==1?'s':''}</span>`:''}
+      <button class="btn danger" onclick="eliminarDeudor(${d.id})" style="height:30px;padding:0 10px"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// PRÉSTAMOS
+// ══════════════════════════════════════════════════════════════
+function syncSelectDeudores(){
+  let sel=document.getElementById('p-deudor'),val=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar —</option>'+deudores.map(d=>`<option value="${d.id}">${d.nombre} (${d.cc})</option>`).join('');
+  if(val)sel.value=val;
+}
+
+function agregarPrestamo(){
+  let deudorId=parseInt(document.getElementById('p-deudor').value);
+  let valor=parseFloat(document.getElementById('p-valor').value);
+  let tasa=parseFloat(document.getElementById('p-tasa').value);
+  let plazo=parseInt(document.getElementById('p-plazo').value);
+  let gadm=parseFloat(document.getElementById('p-gadm').value)||0;
+  let gmf=parseFloat(document.getElementById('p-gmf').value)||0;
+  let fechaInicio=document.getElementById('p-fecha').value;
+  let tipo=document.getElementById('p-tipo').value.trim()||'LIBRE INVERSIÓN';
+  let ciudad=document.getElementById('p-ciudad').value.trim()||'Santa Marta';
+  if(!deudorId||!valor||!tasa||!plazo||!fechaInicio){alert('Completa todos los campos obligatorios (*).');return;}
+  const pid=Date.now();
+  prestamos.push({id:pid,deudorId,valor,tasa,plazo,gadm,gmf,fechaInicio,tipo,ciudad});
+  pagos[pid]={};
+  save();renderPrestamos();
+  ['p-valor','p-tasa','p-plazo','p-gadm','p-gmf','p-fecha','p-tipo','p-ciudad'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-deudor').value='';
+  toast('Préstamo creado correctamente');
+}
+
+function eliminarPrestamo(id){
+  if(!confirm('¿Eliminar este préstamo?'))return;
+  delete pagos[id];
+  prestamos=prestamos.filter(p=>p.id!==id);
+  save();renderPrestamos();toast('Préstamo eliminado');
+}
+
+function renderPrestamos(){
+  syncSelectDeudores();
+  let el=document.getElementById('lista-prestamos');
+  if(!prestamos.length){el.innerHTML='<div class="empty"><i class="ti ti-cash" style="font-size:28px;opacity:.3"></i><br>Aún no hay préstamos registrados.</div>';return;}
+  el.innerHTML=prestamos.map(p=>{
+    let d=deudores.find(x=>x.id===p.deudorId);
+    let cuota=calcCuota(p.valor,p.tasa,p.plazo),total=cuota+p.gadm+p.gmf;
+    let pg=pagos[p.id]||{};
+    let pagadas=Object.values(pg).filter(v=>v.pagado).length;
+    let pct=Math.round((pagadas/p.plazo)*100);
+    return`<div class="pitem" style="margin-bottom:8px;flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="avatar" style="background:#e8f8ee;color:#1a7a4a">${d?initials(d.nombre):'?'}</div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:13px;font-weight:600">${d?d.nombre:'(eliminado)'}</div>
+          <div style="font-size:11px;color:#888">${d?d.empresa+' · ':''}<b>${fmt(p.valor)}</b> · ${p.tasa}% · ${p.plazo} meses · desde ${fmtDate(p.fechaInicio)}</div>
+        </div>
+        <div style="text-align:right;min-width:110px">
+          <div style="font-size:14px;font-weight:700;color:#1a7a4a">${fmt(total)}/mes</div>
+          <div style="font-size:11px;color:#888">${pagadas}/${p.plazo} cuotas pagadas</div>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="irAPagos(${p.id})"><i class="ti ti-checkbox"></i> Pagos</button>
+          <button class="btn" onclick="verAmortizacion(${p.id})"><i class="ti ti-table"></i> Tabla</button>
+          <button class="btn success" onclick="generarContrato(${p.id})"><i class="ti ti-file-word"></i> Contrato</button>
+          <button class="btn danger" onclick="eliminarPrestamo(${p.id})"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#888;margin-bottom:3px"><span>Progreso de pagos</span><span>${pct}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGOS
+// ══════════════════════════════════════════════════════════════
+function irAPagos(id){
+  switchTab('pagos');
+  setTimeout(()=>{document.getElementById('pg-prestamo').value=id;renderPagos();},60);
+}
+
+function syncSelectPagos(){
+  let sel=document.getElementById('pg-prestamo'),val=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar —</option>'+prestamos.map(p=>{
+    let d=deudores.find(x=>x.id===p.deudorId);
+    let pg=pagos[p.id]||{};
+    let pagadas=Object.values(pg).filter(v=>v.pagado).length;
+    return`<option value="${p.id}">${d?d.nombre:'?'} — ${fmt(p.valor)} x ${p.plazo}m (${pagadas}/${p.plazo} pagadas)</option>`;
+  }).join('');
+  if(val)sel.value=val;
+}
+
+function togglePago(prestamoId,periodo){
+  if(!pagos[prestamoId]) pagos[prestamoId]={};
+  let actual=pagos[prestamoId][periodo];
+  if(actual && actual.pagado){
+    pagos[prestamoId][periodo]={pagado:false,fechaPago:''};
+  } else {
+    pagos[prestamoId][periodo]={pagado:true,fechaPago:new Date().toISOString().split('T')[0]};
+  }
+  save();
+  renderPagos();
+  // verificar si ya están todas pagadas
+  let p=prestamos.find(x=>x.id===prestamoId);
+  if(p){
+    let pg=pagos[p.id]||{};
+    let pagadas=Object.values(pg).filter(v=>v.pagado).length;
+    if(pagadas>=p.plazo) ofrecerArchivar(prestamoId);
+  }
+}
+
+function ofrecerArchivar(prestamoId){
+  let p=prestamos.find(x=>x.id===prestamoId);
+  if(!p) return;
+  let d=deudores.find(x=>x.id===p.deudorId);
+  setTimeout(()=>{
+    if(confirm('✅ ¡Todas las cuotas de '+( d?d.nombre:'este préstamo')+' están pagadas!\n\n¿Deseas moverlo al Historial como crédito finalizado?')){
+      archivarPrestamo(prestamoId);
+    }
+  },300);
+}
+
+function archivarPrestamo(prestamoId){
+  let p=prestamos.find(x=>x.id===prestamoId);
+  if(!p){alert('Préstamo no encontrado.');return;}
+  let d=deudores.find(x=>x.id===p.deudorId);
+  let rows=generarAmortizacion(p);
+  let totalPagado=rows.reduce((s,r)=>s+r.total,0);
+  historial.push({
+    ...p,
+    deudorNombre:d?d.nombre:'',
+    deudorEmpresa:d?d.empresa:'',
+    fechaFin:new Date().toISOString().split('T')[0],
+    totalPagado,
+    cuotasMarcadas:Object.assign({},pagos[p.id])
+  });
+  delete pagos[p.id];
+  prestamos=prestamos.filter(x=>x.id!==prestamoId);
+  save();
+  renderPrestamos();
+  renderHistorial();
+  renderDeudores();
+  document.getElementById('pg-prestamo').value='';
+  renderPagos();
+  toast('✓ Crédito archivado en el Historial');
+}
+
+function marcarTodasPagadas(){
+  let id=parseInt(document.getElementById('pg-prestamo').value);
+  if(!id) return;
+  let p=prestamos.find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm('¿Marcar TODAS las cuotas como pagadas?')) return;
+  if(!pagos[id]) pagos[id]={};
+  let hoy=new Date().toISOString().split('T')[0];
+  for(let i=1;i<=p.plazo;i++){
+    if(!pagos[id][i]||!pagos[id][i].pagado)
+      pagos[id][i]={pagado:true,fechaPago:hoy};
+  }
+  save();renderPagos();
+  setTimeout(()=>ofrecerArchivar(id),200);
+}
+
+function renderPagos(){
+  let id=parseInt(document.getElementById('pg-prestamo').value);
+  let empty=document.getElementById('pagos-empty'),summary=document.getElementById('pagos-summary');
+  if(!id){empty.style.display='';summary.style.display='none';return;}
+  let p=prestamos.find(x=>x.id===id);
+  if(!p){empty.style.display='';summary.style.display='none';return;}
+  empty.style.display='none';summary.style.display='';
+  let rows=generarAmortizacion(p);
+  let pg=pagos[id]||{};
+  let pagadas=Object.values(pg).filter(v=>v.pagado).length;
+  let pendientes=p.plazo-pagadas;
+  let cuota=calcCuota(p.valor,p.tasa,p.plazo);
+  let totalCobrado=rows.filter((r,i)=>pg[i+1]&&pg[i+1].pagado).reduce((s,r)=>s+r.total,0);
+  let totalPendiente=rows.filter((r,i)=>!pg[i+1]||!pg[i+1].pagado).reduce((s,r)=>s+r.total,0);
+  let pct=Math.round((pagadas/p.plazo)*100);
+  document.getElementById('pagos-metrics').innerHTML=`
+    <div class="metric"><div class="label">Cuotas pagadas</div><div class="value green">${pagadas} / ${p.plazo}</div></div>
+    <div class="metric"><div class="label">Pendientes</div><div class="value ${pendientes?'':'green'}">${pendientes}</div></div>
+    <div class="metric"><div class="label">Total cobrado</div><div class="value green">${fmt(totalCobrado)}</div></div>
+    <div class="metric"><div class="label">Por cobrar</div><div class="value blue">${fmt(totalPendiente)}</div></div>
+    <div class="metric"><div class="label">Progreso</div><div class="value ${pct===100?'green':'blue'}">${pct}%</div></div>`;
+  document.getElementById('pagos-body').innerHTML=rows.map(r=>{
+    let estado=pg[r.periodo];
+    let pagado=estado&&estado.pagado;
+    let fechaPago=pagado?(estado.fechaPago?fmtDate(estado.fechaPago):''):'';
+    return`<tr style="${pagado?'opacity:.65':''}">
+      <td>
+        <button class="check-btn ${pagado?'checked':''}" onclick="togglePago(${id},${r.periodo})" title="${pagado?'Marcar como pendiente':'Marcar como pagada'}">
+          ${pagado?'<i class="ti ti-check" style="font-size:13px"></i>':''}
+        </button>
+      </td>
+      <td style="font-weight:${pagado?'400':'600'}">${r.periodo}</td>
+      <td>${fmtDate(r.fecha)}</td>
+      <td class="num">${fmt(r.cuota)}</td>
+      <td class="num">${fmt(r.interes)}</td>
+      <td class="num">${fmt(r.capital)}</td>
+      <td class="num" style="font-weight:600;color:${pagado?'#1a7a4a':'#1F497D'}">${fmt(r.total)}</td>
+      <td style="color:#888;font-size:12px">${fechaPago}</td>
+      <td><span class="badge ${pagado?'pagado':'pendiente'}">${pagado?'✓ Pagada':'Pendiente'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// HISTORIAL
+// ══════════════════════════════════════════════════════════════
+function renderHistorial(){
+  let el=document.getElementById('lista-historial');
+  let metricsEl=document.getElementById('historial-metrics');
+  if(!historial.length){
+    metricsEl.innerHTML='';
+    el.innerHTML='<div class="empty"><i class="ti ti-archive" style="font-size:28px;opacity:.3"></i><br>Aún no hay créditos finalizados.</div>';
+    return;
+  }
+  let totalCreditos=historial.length;
+  let totalRecibido=historial.reduce((s,h)=>s+h.totalPagado,0);
+  let totalCapital=historial.reduce((s,h)=>s+h.valor,0);
+  metricsEl.innerHTML=`
+    <div class="metric"><div class="label">Créditos finalizados</div><div class="value">${totalCreditos}</div></div>
+    <div class="metric"><div class="label">Capital prestado</div><div class="value blue">${fmt(totalCapital)}</div></div>
+    <div class="metric"><div class="label">Total recibido</div><div class="value green">${fmt(totalRecibido)}</div></div>
+    <div class="metric"><div class="label">Rendimiento neto</div><div class="value green">${fmt(totalRecibido-totalCapital)}</div></div>`;
+  el.innerHTML=historial.slice().reverse().map(h=>{
+    let rows=generarAmortizacion(h);
+    let totalInteres=rows.reduce((s,r)=>s+r.interes,0);
+    return`<div class="hist-item">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="avatar" style="background:#c8f0d8;color:#0a5a2a">${initials(h.deudorNombre||h.nombre||'?')}</div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-size:13px;font-weight:600">${h.deudorNombre||'(sin nombre)'}</div>
+          <div style="font-size:11px;color:#555">${h.deudorEmpresa||''} · CC: ${h.cc||''}</div>
+          <div style="font-size:11px;color:#555"><b>${fmt(h.valor)}</b> · ${h.tasa}% · ${h.plazo} meses · desde ${fmtDate(h.fechaInicio)}</div>
+        </div>
+        <div style="text-align:right;min-width:120px">
+          <div style="font-size:14px;font-weight:700;color:#1a7a4a">${fmt(h.totalPagado)}</div>
+          <div style="font-size:11px;color:#555">total recibido</div>
+          <div style="font-size:11px;color:#1a7a4a">intereses: ${fmt(totalInteres)}</div>
+        </div>
+        <div class="actions">
+          <button class="btn success" onclick="generarContratoHistorial(${h.id})" title="Generar contrato Word"><i class="ti ti-file-word"></i> Contrato</button>
+          <button class="btn danger" onclick="eliminarHistorial(${h.id})" style="height:30px;padding:0 10px"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#555;display:flex;justify-content:space-between">
+        <span>Finalizado: ${fmtDate(h.fechaFin)}</span>
+        <span style="color:#1a7a4a;font-weight:600">✓ PAGADO COMPLETAMENTE</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function eliminarHistorial(id){
+  if(!confirm('¿Eliminar este registro del historial?'))return;
+  historial=historial.filter(h=>h.id!==id);
+  save();renderHistorial();toast('Registro eliminado del historial');
+}
+
+function generarContratoHistorial(id){
+  let h=historial.find(x=>x.id===id);
+  if(!h){alert('Registro no encontrado.');return;}
+  // crear un objeto deudor temporal para reutilizar generarContrato
+  let dTemp={id:h.deudorId,nombre:h.deudorNombre||'',cc:h.cc||'',empresa:h.deudorEmpresa||'',nit:h.nit||'',tel:h.tel||'',email:h.email||'',dir:h.dir||''};
+  // guardar temporalmente
+  let dBackup=[...deudores];
+  let pBackup=[...prestamos];
+  if(!deudores.find(d=>d.id===dTemp.id)) deudores.push(dTemp);
+  if(!prestamos.find(p=>p.id===h.id)) prestamos.push(h);
+  generarContrato(h.id).then(()=>{
+    deudores=dBackup;prestamos=pBackup;
+  }).catch(()=>{deudores=dBackup;prestamos=pBackup;});
+}
+
+// ══════════════════════════════════════════════════════════════
+
+function syncSelectAmort(){
+  let sel=document.getElementById('a-prestamo'),val=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar —</option>'+prestamos.map(p=>{
+    let d=deudores.find(x=>x.id===p.deudorId);
+    return`<option value="${p.id}">${d?d.nombre:'?'} — ${fmt(p.valor)} x ${p.plazo}m</option>`;
+  }).join('');
+  if(val)sel.value=val;
+}
+
+function verAmortizacion(id){
+  switchTab('amortizacion');
+  setTimeout(()=>{document.getElementById('a-prestamo').value=id;renderAmortizacion();},60);
+}
+
+function renderAmortizacion(){
+  let id=parseInt(document.getElementById('a-prestamo').value);
+  let empty=document.getElementById('amort-empty'),summary=document.getElementById('amort-summary');
+  if(!id){empty.style.display='';summary.style.display='none';return;}
+  let p=prestamos.find(x=>x.id===id);
+  if(!p){empty.style.display='';summary.style.display='none';return;}
+  empty.style.display='none';summary.style.display='';
+  let rows=generarAmortizacion(p);
+  let cuota=calcCuota(p.valor,p.tasa,p.plazo);
+  let totalInteres=rows.reduce((s,r)=>s+r.interes,0);
+  let totalCobrar=rows.reduce((s,r)=>s+r.total,0);
+  document.getElementById('amort-metrics').innerHTML=`
+    <div class="metric"><div class="label">Cuota mensual</div><div class="value blue">${fmt(cuota)}</div></div>
+    <div class="metric"><div class="label">Total/mes con gastos</div><div class="value green">${fmt(cuota+p.gadm+p.gmf)}</div></div>
+    <div class="metric"><div class="label">Total intereses</div><div class="value">${fmt(totalInteres)}</div></div>
+    <div class="metric"><div class="label">Total a recibir</div><div class="value green">${fmt(totalCobrar)}</div></div>`;
+  document.getElementById('amort-body').innerHTML=rows.map(r=>`<tr>
+    <td>${r.periodo}</td><td>${fmtDate(r.fecha)}</td>
+    <td class="num">${fmt(r.saldoInicial)}</td><td class="num">${fmt(r.cuota)}</td>
+    <td class="num">${fmt(r.interes)}</td><td class="num">${fmt(r.capital)}</td>
+    <td class="num">${fmt(r.saldoFinal)}</td>
+    <td class="num" style="font-weight:600;color:#1a7a4a">${fmt(r.total)}</td>
+  </tr>`).join('');
+}
+
+function generarContratoDesdeAmort(){
+  let id=parseInt(document.getElementById('a-prestamo').value);
+  if(!id){alert('Selecciona un préstamo primero.');return;}
+  generarContrato(id);
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESUMEN MENSUAL
+// ══════════════════════════════════════════════════════════════
+function cambiarMes(delta){mesActual.setMonth(mesActual.getMonth()+delta);renderMensual();}
+
+function renderMensual(){
+  let y=mesActual.getFullYear(),m=mesActual.getMonth();
+  const NM=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('mes-label').textContent=NM[m]+' '+y;
+  let filas=[];
+  prestamos.forEach(p=>{
+    generarAmortizacion(p).forEach(r=>{
+      let fd=new Date(r.fecha+'T12:00:00');
+      if(fd.getFullYear()===y&&fd.getMonth()===m){
+        let d=deudores.find(x=>x.id===p.deudorId);
+        filas.push({...r,deudor:d?d.nombre:'?',empresa:d?d.empresa:'',prestamo:fmt(p.valor)+' x '+p.plazo+'m',gadm:p.gadm,gmf:p.gmf});
+      }
+    });
+  });
+  let tCuotas=filas.reduce((s,r)=>s+r.cuota,0);
+  let tInteres=filas.reduce((s,r)=>s+r.interes,0);
+  let tTotal=filas.reduce((s,r)=>s+r.total,0);
+  document.getElementById('mensual-metrics').innerHTML=`
+    <div class="metric"><div class="label">Cobros del mes</div><div class="value">${filas.length}</div></div>
+    <div class="metric"><div class="label">Total cuotas</div><div class="value blue">${fmt(tCuotas)}</div></div>
+    <div class="metric"><div class="label">Total intereses</div><div class="value">${fmt(tInteres)}</div></div>
+    <div class="metric"><div class="label">Total a recibir</div><div class="value green">${fmt(tTotal)}</div></div>`;
+  let tbody=document.getElementById('mensual-body');
+  if(!filas.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Sin cobros para este mes.</td></tr>';return;}
+  tbody.innerHTML=filas.map(r=>`<tr>
+    <td>${r.deudor}</td><td style="color:#888">${r.empresa}</td>
+    <td style="color:#888">${r.prestamo}</td>
+    <td class="num">${fmt(r.cuota)}</td><td class="num">${fmt(r.interes)}</td>
+    <td class="num">${fmt(r.capital)}</td><td class="num">${fmt(r.gadm)}</td>
+    <td class="num">${fmt(r.gmf)}</td>
+    <td class="num" style="font-weight:600;color:#1a7a4a">${fmt(r.total)}</td>
+    <td style="color:#888">Cuota ${r.periodo}</td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORTAR EXCEL
+// ══════════════════════════════════════════════════════════════
+function exportarAmortizacion(){
+  let id=parseInt(document.getElementById('a-prestamo').value);
+  if(!id){alert('Selecciona un préstamo primero.');return;}
+  let p=prestamos.find(x=>x.id===id);if(!p)return;
+  let d=deudores.find(x=>x.id===p.deudorId);
+  let rows=generarAmortizacion(p);
+  let cuota=calcCuota(p.valor,p.tasa,p.plazo);
+  let wsData=[
+    ['LIBRANZAYA — Tabla de Amortización'],
+    ['Deudor:',d?d.nombre:''],['Empresa:',d?d.empresa:''],['Cédula:',d?d.cc:''],
+    ['Valor:',p.valor],['Tasa:',p.tasa+'%'],['Plazo:',p.plazo+' meses'],
+    ['Cuota:',+cuota.toFixed(2)],['G.Adm.:',p.gadm],['GMF:',p.gmf],['Total/mes:',+(cuota+p.gadm+p.gmf).toFixed(2)],[],
+    ['#','Fecha','Saldo inicial','Cuota','Interés','Capital','Saldo final','Total'],
+    ...rows.map(r=>[r.periodo,r.fecha,+r.saldoInicial.toFixed(2),+r.cuota.toFixed(2),+r.interes.toFixed(2),+r.capital.toFixed(2),+r.saldoFinal.toFixed(2),+r.total.toFixed(2)])
+  ];
+  let wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:4},{wch:13},{wch:15},{wch:14},{wch:14},{wch:14},{wch:14},{wch:15}];
+  XLSX.utils.book_append_sheet(wb,ws,'Amortización');
+  XLSX.writeFile(wb,(d?d.nombre.replace(/\s+/g,'_'):'prestamo')+'_amortizacion.xlsx');
+}
+
+function exportarMensual(){
+  let y=mesActual.getFullYear(),m=mesActual.getMonth();
+  const NM=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let titulo=NM[m]+' '+y,filas=[];
+  prestamos.forEach(p=>{
+    generarAmortizacion(p).forEach(r=>{
+      let fd=new Date(r.fecha+'T12:00:00');
+      if(fd.getFullYear()===y&&fd.getMonth()===m){
+        let d=deudores.find(x=>x.id===p.deudorId);
+        filas.push([d?d.nombre:'?',d?d.empresa:'',fmt(p.valor)+' x '+p.plazo+'m','Cuota '+r.periodo,+r.cuota.toFixed(2),+r.interes.toFixed(2),+r.capital.toFixed(2),p.gadm,p.gmf,+r.total.toFixed(2),r.fecha]);
+      }
+    });
+  });
+  let tTotal=filas.reduce((s,r)=>s+r[9],0);
+  let wsData=[['LIBRANZAYA — Resumen mensual: '+titulo],[],
+    ['Deudor','Empresa','Préstamo','Período','Cuota','Interés','Capital','G.Adm.','GMF','Total','Fecha pago'],
+    ...filas,[],[,'','','TOTAL','','','','','',+tTotal.toFixed(2)]];
+  let wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:22},{wch:16},{wch:18},{wch:10},{wch:14},{wch:14},{wch:14},{wch:10},{wch:10},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'Resumen');
+  XLSX.writeFile(wb,'resumen_'+titulo.replace(/\s/g,'_')+'.xlsx');
+}
+
+// ══════════════════════════════════════════════════════════════
+// REPORTE PARA EMPRESA — descuentos por empleado por empresa
+// ══════════════════════════════════════════════════════════════
+function reporteEmpresa(){
+  const y=mesActual.getFullYear(), m=mesActual.getMonth();
+  const NM=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const titulo=NM[m]+' '+y;
+
+  // Agrupar cuotas del mes por empresa
+  const porEmpresa={};
+  prestamos.forEach(p=>{
+    generarAmortizacion(p).forEach(r=>{
+      const fd=new Date(r.fecha+'T12:00:00');
+      if(fd.getFullYear()===y && fd.getMonth()===m){
+        const d=deudores.find(x=>x.id===p.deudorId);
+        const empresa=(d&&d.empresa&&d.empresa.trim())?d.empresa.trim():'SIN EMPRESA';
+        const nit=(d&&d.nit&&d.nit.trim())?d.nit.trim():'';
+        if(!porEmpresa[empresa]) porEmpresa[empresa]={nit,empleados:[]};
+        porEmpresa[empresa].empleados.push({
+          nombre:d?d.nombre:'(sin nombre)',
+          cc:d?d.cc:'',
+          cuota:r.cuota,
+          interes:r.interes,
+          capital:r.capital,
+          gadm:p.gadm,
+          gmf:p.gmf,
+          total:r.total,
+          periodo:r.periodo,
+          plazo:p.plazo
+        });
+      }
+    });
+  });
+
+  const empresas=Object.keys(porEmpresa);
+  if(!empresas.length){alert('No hay cobros registrados para '+titulo+'.');return;}
+
+  const wb=XLSX.utils.book_new();
+  const AZUL='1F497D', VERDE='1a7a4a', HEADER_BG='1F497D', FILA_ALT='EBF2FB';
+
+  // ── Hoja resumen general ──────────────────────────────────────
+  const resumenData=[
+    ['LIBRANZAYA — REPORTE DE DESCUENTOS POR EMPRESA'],
+    ['Período:', titulo],
+    ['Fecha de emisión:', new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})],
+    [],
+    ['EMPRESA / NIT','N° EMPLEADOS','TOTAL A DESCONTAR'],
+  ];
+  let grandTotal=0;
+  empresas.forEach(emp=>{
+    const info=porEmpresa[emp];
+    const tot=info.empleados.reduce((s,e)=>s+e.total,0);
+    grandTotal+=tot;
+    resumenData.push([emp+(info.nit?' (NIT: '+info.nit+')':''), info.empleados.length, +tot.toFixed(2)]);
+  });
+  resumenData.push([]);
+  resumenData.push(['','GRAN TOTAL', +grandTotal.toFixed(2)]);
+
+  const wsRes=XLSX.utils.aoa_to_sheet(resumenData);
+  wsRes['!cols']=[{wch:40},{wch:18},{wch:22}];
+
+  // Estilos básicos para la hoja resumen (celdas de título)
+  if(!wsRes['A1'].s) wsRes['A1'].s={};
+  wsRes['A1'].s={font:{bold:true,sz:14,color:{rgb:AZUL}}};
+
+  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumen General');
+
+  // ── Hoja por cada empresa ──────────────────────────────────────
+  empresas.forEach(emp=>{
+    const info=porEmpresa[emp];
+    const sheetData=[
+      ['REPORTE DE DESCUENTOS DE NÓMINA — LIBRANZA'],
+      ['Empresa:', emp],
+      ['NIT:', info.nit||'—'],
+      ['Período:', titulo],
+      ['Fecha de emisión:', new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})],
+      [],
+      ['EMPLEADO','CÉDULA','CUOTA PRÉSTAMO','INTERÉS','CAPITAL','G. ADMINISTRAT.','GMF','TOTAL A DESCONTAR','CUOTA N°'],
+    ];
+
+    let tCuota=0, tInteres=0, tCapital=0, tGadm=0, tGmf=0, tTotal=0;
+    info.empleados.forEach(e=>{
+      sheetData.push([
+        e.nombre, e.cc,
+        +e.cuota.toFixed(2), +e.interes.toFixed(2), +e.capital.toFixed(2),
+        +e.gadm.toFixed(2), +e.gmf.toFixed(2), +e.total.toFixed(2),
+        e.periodo+'/'+e.plazo
+      ]);
+      tCuota+=e.cuota; tInteres+=e.interes; tCapital+=e.capital;
+      tGadm+=e.gadm; tGmf+=e.gmf; tTotal+=e.total;
+    });
+
+    sheetData.push([]);
+    sheetData.push([
+      'TOTALES', '',
+      +tCuota.toFixed(2), +tInteres.toFixed(2), +tCapital.toFixed(2),
+      +tGadm.toFixed(2), +tGmf.toFixed(2), +tTotal.toFixed(2), ''
+    ]);
+    sheetData.push([]);
+    sheetData.push(['INSTRUCCIONES:','Realizar el descuento de nómina a cada empleado según la columna "TOTAL A DESCONTAR" y transferir el total al prestamista en la fecha indicada.']);
+
+    const ws=XLSX.utils.aoa_to_sheet(sheetData);
+    ws['!cols']=[{wch:30},{wch:14},{wch:18},{wch:14},{wch:14},{wch:18},{wch:10},{wch:20},{wch:12}];
+
+    // Nombre de hoja: máx 31 chars, sin caracteres especiales
+    const sheetName=emp.replace(/[\\\/\?\*\[\]]/g,'').substring(0,28);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName||'Empresa');
+  });
+
+  XLSX.writeFile(wb, 'ReporteEmpresa_'+titulo.replace(/\s/g,'_')+'.xlsx');
+  toast('✓ Reporte para empresa generado: '+empresas.length+' empresa(s)');
+}
+
+// ══════════════════════════════════════════════════════════════
+// GENERACIÓN DE CONTRATO WORD (DOCX puro sin librería externa)
+// Construye el .docx manualmente usando la especificación OOXML
+// ══════════════════════════════════════════════════════════════
+
+// Helper: escapar XML
+function xe(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Construir un párrafo con runs
+function wParagraph(runs, opts={}){
+  const align=opts.align||'left';
+  const spBefore=opts.spBefore!=null?opts.spBefore:60;
+  const spAfter=opts.spAfter!=null?opts.spAfter:60;
+  const numId=opts.numId;
+  let pPr=`<w:pPr><w:jc w:val="${align}"/><w:spacing w:before="${spBefore}" w:after="${spAfter}"/>`;
+  if(numId!=null) pPr+=`<w:numPr><w:ilvl w:val="0"/><w:numId w:val="${numId}"/></w:numPr>`;
+  pPr+='</w:pPr>';
+  let runsXml=runs.map(r=>{
+    let rPr='<w:rPr>';
+    if(r.bold) rPr+='<w:b/>';
+    if(r.sz) rPr+=`<w:sz w:val="${r.sz}"/>`;
+    if(r.color) rPr+=`<w:color w:val="${r.color}"/>`;
+    rPr+='<w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>';
+    return`<w:r>${rPr}<w:t xml:space="preserve">${xe(r.text||'')}</w:t></w:r>`;
+  }).join('');
+  return`<w:p>${pPr}${runsXml}</w:p>`;
+}
+
+// Celda de tabla
+function wCell(content, opts={}){
+  const w=opts.w||4320;
+  const borders=opts.noBorder?
+    `<w:tcBorders><w:top w:val="none"/><w:bottom w:val="none"/><w:left w:val="none"/><w:right w:val="none"/></w:tcBorders>`:
+    `<w:tcBorders><w:top w:val="single" w:sz="4" w:color="000000"/><w:bottom w:val="single" w:sz="4" w:color="000000"/><w:left w:val="single" w:sz="4" w:color="000000"/><w:right w:val="single" w:sz="4" w:color="000000"/></w:tcBorders>`;
+  const shading=opts.shading?`<w:shd w:val="clear" w:color="auto" w:fill="${opts.shading}"/>`:''
+  return`<w:tc><w:tcPr>${borders}${shading}<w:tcW w:w="${w}" w:type="dxa"/><w:tcMar><w:top w:w="80" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tcMar></w:tcPr>${content}</w:tc>`;
+}
+
+// Fila de tabla con 2 celdas
+function wRow2(cell1,cell2){return`<w:tr>${cell1}${cell2}</w:tr>`;}
+
+// Tabla simple
+function wTable(rows,totalW=10080){
+  return`<w:tbl><w:tblPr><w:tblW w:w="${totalW}" w:type="dxa"/></w:tblPr>${rows.join('')}</w:tbl>`;
+}
+
+async function generarContrato(prestamoId){
+  const p=prestamos.find(x=>x.id===prestamoId);
+  if(!p){alert('Préstamo no encontrado.');return;}
+  const d=deudores.find(x=>x.id===p.deudorId);
+  if(!d){alert('Deudor no encontrado.');return;}
+
+  toast('Generando contrato Word…');
+
+  const cuota=calcCuota(p.valor,p.tasa,p.plazo);
+  const cuotaFmt=fmtMoney(cuota);
+  const totalMes=fmtMoney(cuota+p.gadm+p.gmf);
+  const valorMaxDesc=fmtMoney((cuota+p.gadm+p.gmf)*1.166);
+  const fechaPago=new Date(p.fechaInicio+'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // ── Construir document.xml ─────────────────────────────────
+  const paragraphs=[];
+
+  // Encabezado: tabla 2 columnas
+  const hdr=wTable([wRow2(
+    wCell(
+      wParagraph([{text:'LIBRANZA',bold:true,sz:22}],{align:'center',spBefore:40,spAfter:20})+
+      wParagraph([{text:'AUT/',bold:true,sz:18}],{align:'center',spBefore:20,spAfter:40}),
+      {w:5040,noBorder:true}
+    ),
+    wCell(
+      wParagraph([{text:'LIBRANZAYA',bold:true,sz:28,color:'FFFFFF'}],{align:'center',spBefore:40,spAfter:40}),
+      {w:5040,noBorder:true,shading:'1F497D'}
+    )
+  )]);
+
+  // Tabla No. Contrato
+  const tblContrato=wTable([wRow2(
+    wCell(
+      wParagraph([{text:'No. Crédito: ',bold:true,sz:20},{text:String(p.id).slice(-6),sz:20}],{spBefore:40,spAfter:40})+
+      wParagraph([{text:'Fecha: ',bold:true,sz:20},{text:fechaPago,sz:20}],{spBefore:40,spAfter:40}),
+      {w:5040}
+    ),
+    wCell(
+      wParagraph([{text:'Monto: ',bold:true,sz:20},{text:'$ '+fmtMoney(p.valor),sz:20}],{spBefore:40,spAfter:40})+
+      wParagraph([{text:'Total/mes: ',bold:true,sz:20},{text:'$ '+totalMes,sz:20}],{spBefore:40,spAfter:40}),
+      {w:5040}
+    )
+  )]);
+
+  // Tabla condiciones
+  const tblCond=wTable([
+    wRow2(
+      wCell(wParagraph([{text:'NOMBRE EMPLEADO: ',bold:true,sz:20},{text:d.nombre.toUpperCase(),sz:20}],{spBefore:40,spAfter:40}),{w:5040}),
+      wCell(wParagraph([{text:'Total/mes: $ ',bold:true,sz:20},{text:totalMes,sz:20}],{spBefore:40,spAfter:40}),{w:5040})
+    ),
+    wRow2(
+      wCell(wParagraph([{text:'CC. ',bold:true,sz:20},{text:d.cc,sz:20}],{spBefore:40,spAfter:40}),{w:5040}),
+      wCell(wParagraph([{text:'Dirección: ',bold:true,sz:20},{text:d.dir||'',sz:20}],{spBefore:40,spAfter:40}),{w:5040})
+    ),
+    wRow2(
+      wCell(wParagraph([{text:'Tipo de Crédito: ',bold:true,sz:20},{text:p.tipo||'LIBRE INVERSIÓN',sz:20}],{spBefore:40,spAfter:40}),{w:5040}),
+      wCell(wParagraph([{text:'Teléfono: ',bold:true,sz:20},{text:d.tel||'',sz:20}],{spBefore:40,spAfter:40}),{w:5040})
+    ),
+    wRow2(
+      wCell(wParagraph([{text:'Valor Crédito: ',bold:true,sz:20},{text:'$ '+fmtMoney(p.valor),sz:20}],{spBefore:40,spAfter:40}),{w:5040}),
+      wCell(wParagraph([{text:'Correo Electrónico: ',bold:true,sz:20},{text:d.email||'',sz:20}],{spBefore:40,spAfter:40}),{w:5040})
+    ),
+    wRow2(
+      wCell(wParagraph([{text:'Plazo en meses: ',bold:true,sz:20},{text:String(p.plazo),sz:20}],{spBefore:40,spAfter:40}),{w:5040}),
+      wCell(wParagraph([{text:'Nombre y Teléfono contacto: ',bold:true,sz:20}],{spBefore:40,spAfter:40}),{w:5040})
+    ),
+  ]);
+
+  const body=[
+    hdr,
+    wParagraph([],{spBefore:60,spAfter:60}),
+    wParagraph([{text:'AUTORIZACIÓN DE LIBRANZA',bold:true,sz:24}],{align:'center',spBefore:80,spAfter:80}),
+    wParagraph([],{spBefore:30,spAfter:30}),
+    wParagraph([{text:'Condiciones del crédito solicitadas por el cliente',bold:true,sz:20}],{spBefore:60,spAfter:60}),
+    tblContrato,
+    wParagraph([],{spBefore:30,spAfter:30}),
+    tblCond,
+    wParagraph([],{spBefore:40,spAfter:40}),
+    wParagraph([
+      {text:'El valor que debe ser descontado por parte del empleador es el que se encuentra en las facturas y/o reportes que son enviados mensualmente por ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20}
+    ],{align:'both',spBefore:60,spAfter:60}),
+    wParagraph([],{spBefore:20,spAfter:20}),
+    wParagraph([{text:'Señores:',sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([{text:d.empresa||'',bold:true,sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([{text:(p.ciudad||'Santa Marta')+', '+fechaPago,sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([],{spBefore:20,spAfter:20}),
+    wParagraph([
+      {text:'ASUNTO: ',bold:true,sz:20},
+      {text:'Crédito otorgado por ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20},
+      {text:', en favor de ',sz:20},
+      {text:d.nombre.toUpperCase(),bold:true,sz:20}
+    ],{spBefore:60,spAfter:60}),
+    wParagraph([],{spBefore:20,spAfter:20}),
+    wParagraph([
+      {text:'Yo, ',sz:20},{text:d.nombre.toUpperCase(),bold:true,sz:20},
+      {text:' mayor de edad domiciliado(a) en la ciudad de '+(p.ciudad||'Santa Marta')+' identificado(a) con la cédula de ciudadanía No ',sz:20},
+      {text:d.cc,bold:true,sz:20},
+      {text:' autorizo expresa e irrevocablemente para que, del sueldo, salario, compensaciones ordinarias y extraordinarias, bonificaciones, prestaciones sociales, o de cualquier suma de la cual sea acreedor, me sean descontados los valores correspondientes a las cuotas mensuales del(los) crédito(s) arriba mencionados del que soy deudor ante ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20},
+      {text:', aún en el evento de encontrarme disfrutando de vacaciones o licencias.',sz:20}
+    ],{align:'both',spBefore:60,spAfter:100}),
+    wParagraph([
+      {text:'Igualmente autorizo expresa e irrevocablemente a ',sz:20},
+      {text:d.empresa||'',bold:true,sz:20},
+      {text:' con ',sz:20},{text:'NIT. '+(d.nit||''),bold:true,sz:20},
+      {text:' para que las sumas descontadas en los términos aquí establecidos sean giradas directamente y entregadas en forma mensual a ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20},
+      {text:', dentro del término fijado para tal efecto, amortizando de esta forma el crédito que me fue concedido. Si la empresa a la cual me encuentro vinculado laboralmente no descuenta y no paga a ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20},
+      {text:' el valor de las cuotas mensuales de(los) respectivo(s) crédito(s) no quedó exonerado de la responsabilidad de pagar la cuota mensual y eventuales intereses de mora. También autorizo a ',sz:20},
+      {text:d.empresa||'',bold:true,sz:20},
+      {text:' a descontar de mi sueldo, salario, compensaciones ordinarias y/o extraordinarias, bonificaciones, prestaciones sociales e indemnizaciones, a que tengo derecho, las cuotas mensuales correspondientes a los meses de receso si hay lugar a ellas, o el(los) saldo(s) del(los) crédito(s) mencionado(s) en caso de que se llegare a terminar mi contrato de trabajo y/o convenio de asociación, por cualquier causa y no existiere renovación.',sz:20}
+    ],{align:'both',spBefore:60,spAfter:100}),
+    wParagraph([
+      {text:'Finalmente, declaro que conozco y acepto que en caso que ocurra la terminación del contrato de trabajo y/o finalización del convenio, ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20},
+      {text:' cobrará la tasa de interés comercial consignada en el pagaré con carta de instrucciones suscrito como garantía al crédito otorgado.',sz:20}
+    ],{align:'both',spBefore:60,spAfter:100}),
+    wParagraph([
+      {text:'Declaro que conozco los reglamentos de los créditos otorgados y su aceptación, para lo cual me acojo a ellos incluso asumiendo que la empresa, solo es un canal de pago y que la administración de los productos se realizará directamente por los canales establecidos por ',sz:20},
+      {text:'LIBRANZAYA.',bold:true,sz:20}
+    ],{align:'both',spBefore:60,spAfter:120}),
+    wParagraph([{text:'Firma del Empleado: ',bold:true,sz:20},{text:'______________________________________',sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([{text:'Nombre: ',bold:true,sz:20},{text:d.nombre.toUpperCase(),sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'C.C. No. ',bold:true,sz:20},{text:d.cc,sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'_'.repeat(110),sz:20}],{spBefore:120,spAfter:120}),
+    wParagraph([{text:'Salario y/o compensación mensual $ ',bold:true,sz:20},{text:'_______________',sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([{text:'TIPO DE CONTRATO:',bold:true,sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([{text:'1. Contrato a término indefinido: ( X );',sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'2. Contrato a término fijo: (   ) por ____________.',sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'3. Convenio de Asociación: (    )',sz:20}],{spBefore:40,spAfter:80}),
+    wParagraph([
+      {text:'De acuerdo con la autorización de nuestro funcionario y/o asociado, efectuaremos los descuentos ordenados en la presente comunicación, los cuales no podrán exceder ',sz:20},
+      {text:valorMaxDesc,bold:true,sz:20},
+      {text:' (valor máximo de descuento) mensuales y procedemos al giro a favor de ',sz:20},
+      {text:'LIBRANZAYA',bold:true,sz:20},
+      {text:'., de los valores descontados conforme al instructivo entregado por esta entidad.',sz:20}
+    ],{align:'both',spBefore:80,spAfter:100}),
+    wParagraph([{text:'En señal de aceptación firmó a los (___) días del mes ____ de ________',sz:20}],{spBefore:60,spAfter:60}),
+    wParagraph([],{spBefore:30,spAfter:30}),
+    wParagraph([{text:'Firma de la persona autorizada de la empresa: ',bold:true,sz:20},{text:'______________________________',sz:20}],{spBefore:60,spAfter:40}),
+    wParagraph([{text:'Nombre: ',bold:true,sz:20},{text:'_________________________',sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'C.C. No. ',bold:true,sz:20},{text:'_________________________',sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'Calidad en la que actúa: ',bold:true,sz:20},{text:'Gerente Financiera y Administrativa',sz:20}],{spBefore:40,spAfter:40}),
+    wParagraph([{text:'Nombre de la empresa: ',bold:true,sz:20},{text:d.empresa||'',bold:true,sz:20}],{spBefore:40,spAfter:40}),
+  ].join('\n');
+
+  // ── Archivos del paquete DOCX ──────────────────────────────
+  const documentXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+  xmlns:w10="urn:schemas-microsoft-com:office:word"
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+  xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+  xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk"
+  xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
+  xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+  mc:Ignorable="w14 wp14">
+<w:body>
+<w:sectPr>
+  <w:pgSz w:w="12240" w:h="15840"/>
+  <w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="708" w:footer="708" w:gutter="0"/>
+</w:sectPr>
+${body}
+</w:body>
+</w:document>`;
+
+  const relsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+
+  const stylesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:docDefaults>
+    <w:rPrDefault><w:rPr>
+      <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+      <w:sz w:val="20"/><w:szCs w:val="20"/>
+    </w:rPr></w:rPrDefault>
+  </w:docDefaults>
+</w:styles>`;
+
+  const contentTypesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`;
+
+  const rootRelsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+  // ── Empaquetar como ZIP usando fflate (disponible via CDN) ──
+  // Usamos un approach nativo con JSZip-like desde bytes
+  // Implementamos un mini ZIP builder en JS puro
+
+  function strToU8(str){
+    return new TextEncoder().encode(str);
+  }
+
+  function crc32(data){
+    let crc=0xFFFFFFFF;
+    const table=new Uint32Array(256);
+    for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):c>>>1;table[i]=c;}
+    for(let i=0;i<data.length;i++) crc=table[(crc^data[i])&0xFF]^(crc>>>8);
+    return(crc^0xFFFFFFFF)>>>0;
+  }
+
+  function u32LE(n){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;}
+  function u16LE(n){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;}
+
+  function concat(...arrays){
+    const total=arrays.reduce((s,a)=>s+a.length,0);
+    const out=new Uint8Array(total);let off=0;
+    for(const a of arrays){out.set(a,off);off+=a.length;}
+    return out;
+  }
+
+  // Construir ZIP sin compresión (stored method = 0)
+  function buildZip(files){
+    // files = [{name, data: Uint8Array}]
+    const localHeaders=[];
+    const centralHeaders=[];
+    let offset=0;
+
+    for(const file of files){
+      const nameBytes=strToU8(file.name);
+      const data=file.data;
+      const crc=crc32(data);
+      const size=data.length;
+
+      // Local file header
+      const local=concat(
+        new Uint8Array([0x50,0x4B,0x03,0x04]), // signature
+        u16LE(20),  // version needed
+        u16LE(0),   // flags
+        u16LE(0),   // compression method (stored)
+        u16LE(0),   // mod time
+        u16LE(0),   // mod date
+        u32LE(crc),
+        u32LE(size),
+        u32LE(size),
+        u16LE(nameBytes.length),
+        u16LE(0),   // extra field length
+        nameBytes,
+        data
+      );
+
+      // Central directory entry
+      const central=concat(
+        new Uint8Array([0x50,0x4B,0x01,0x02]),
+        u16LE(20),  // version made by
+        u16LE(20),  // version needed
+        u16LE(0),   // flags
+        u16LE(0),   // compression
+        u16LE(0),   // mod time
+        u16LE(0),   // mod date
+        u32LE(crc),
+        u32LE(size),
+        u32LE(size),
+        u16LE(nameBytes.length),
+        u16LE(0),   // extra
+        u16LE(0),   // comment
+        u16LE(0),   // disk start
+        u16LE(0),   // internal attr
+        u32LE(0),   // external attr
+        u32LE(offset),
+        nameBytes
+      );
+
+      localHeaders.push(local);
+      centralHeaders.push(central);
+      offset+=local.length;
+    }
+
+    const centralStart=offset;
+    const centralData=concat(...centralHeaders);
+    const centralSize=centralData.length;
+
+    // End of central directory
+    const eocd=concat(
+      new Uint8Array([0x50,0x4B,0x05,0x06]),
+      u16LE(0),  // disk number
+      u16LE(0),  // disk with CD
+      u16LE(files.length),
+      u16LE(files.length),
+      u32LE(centralSize),
+      u32LE(centralStart),
+      u16LE(0)   // comment length
+    );
+
+    return concat(...localHeaders,centralData,eocd);
+  }
+
+  const files=[
+    {name:'[Content_Types].xml',   data:strToU8(contentTypesXml)},
+    {name:'_rels/.rels',           data:strToU8(rootRelsXml)},
+    {name:'word/document.xml',     data:strToU8(documentXml)},
+    {name:'word/styles.xml',       data:strToU8(stylesXml)},
+    {name:'word/_rels/document.xml.rels', data:strToU8(relsXml)},
+  ];
+
+  const zipData=buildZip(files);
+  const blob=new Blob([zipData],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='contrato_'+d.nombre.replace(/\s+/g,'_')+'_'+fmtMoney(p.valor)+'.docx';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+  toast('✓ Contrato Word descargado');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// MI CAPITAL — Análisis de inversión
+// ══════════════════════════════════════════════════════════════
+function renderCapital(){
+  // ── Activos ──────────────────────────────────────────────
+  let totalCapitalOriginal=0, totalCapitalRecuperado=0, totalCapitalPendiente=0;
+  let totalInteresesCobrados=0, totalInteresesPorCobrar=0;
+  let totalAdmCobradas=0, totalAdmPorCobrar=0;
+  let filas=[];
+
+  prestamos.forEach(p=>{
+    const d=deudores.find(x=>x.id===p.deudorId);
+    const rows=generarAmortizacion(p);
+    const pg=pagos[p.id]||{};
+
+    let capRecup=0, capPend=0, intCob=0, intPend=0, admCob=0, admPend=0;
+    rows.forEach((r,i)=>{
+      const estPagado=pg[r.periodo]&&pg[r.periodo].pagado;
+      if(estPagado){
+        capRecup+=r.capital; intCob+=r.interes; admCob+=p.gadm;
+      } else {
+        capPend+=r.capital; intPend+=r.interes; admPend+=p.gadm;
+      }
+    });
+    const pagadas=Object.values(pg).filter(v=>v.pagado).length;
+    const pct=Math.round((pagadas/p.plazo)*100);
+
+    totalCapitalOriginal+=p.valor;
+    totalCapitalRecuperado+=capRecup;
+    totalCapitalPendiente+=capPend;
+    totalInteresesCobrados+=intCob;
+    totalInteresesPorCobrar+=intPend;
+    totalAdmCobradas+=admCob;
+    totalAdmPorCobrar+=admPend;
+
+    filas.push({d,p,capRecup,capPend,intCob,intPend,admCob,admPend,pct,pagadas});
+  });
+
+  // ── Historial (créditos finalizados) ─────────────────────
+  let histCapital=0, histIntereses=0, histAdm=0, histTotal=0;
+  historial.forEach(h=>{
+    const rows=generarAmortizacion(h);
+    histCapital+=h.valor;
+    histIntereses+=rows.reduce((s,r)=>s+r.interes,0);
+    histAdm+=h.gadm*h.plazo;
+    histTotal+=h.totalPagado;
+  });
+
+  // ── Métricas globales ─────────────────────────────────────
+  const rendimientoActivo=totalInteresesCobrados+totalAdmCobradas;
+  const rendimientoPorCobrar=totalInteresesPorCobrar+totalAdmPorCobrar;
+  const rendimientoHistorial=histIntereses+histAdm;
+
+  document.getElementById('capital-global-metrics').innerHTML=`
+    <div class="metric"><div class="label">💰 Capital activo invertido</div><div class="value blue">${fmt(totalCapitalPendiente+totalCapitalRecuperado)}</div></div>
+    <div class="metric"><div class="label">✅ Capital recuperado</div><div class="value green">${fmt(totalCapitalRecuperado)}</div></div>
+    <div class="metric"><div class="label">⏳ Capital por recuperar</div><div class="value" style="color:#b05a00">${fmt(totalCapitalPendiente)}</div></div>
+    <div class="metric"><div class="label">📈 Intereses cobrados</div><div class="value green">${fmt(totalInteresesCobrados)}</div></div>
+    <div class="metric"><div class="label">📈 Intereses por cobrar</div><div class="value blue">${fmt(totalInteresesPorCobrar)}</div></div>
+    <div class="metric"><div class="label">🏷️ Adm. cobradas</div><div class="value green">${fmt(totalAdmCobradas)}</div></div>
+    <div class="metric"><div class="label">🏷️ Adm. por cobrar</div><div class="value blue">${fmt(totalAdmPorCobrar)}</div></div>
+    <div class="metric"><div class="label">🏦 Ganancia total activa</div><div class="value green">${fmt(rendimientoActivo+rendimientoPorCobrar)}</div></div>`;
+
+  // ── Desglose ──────────────────────────────────────────────
+  const totalGanancia=rendimientoActivo+rendimientoPorCobrar+rendimientoHistorial;
+  const totalCapAll=totalCapitalOriginal+histCapital;
+  document.getElementById('capital-desglose-body').innerHTML=`
+    <table style="width:100%">
+      <tr><th style="text-align:left;color:#888;font-size:11px;padding:4px 0">Componente</th><th class="num" style="color:#888;font-size:11px;padding:4px 0">Activo</th><th class="num" style="color:#888;font-size:11px;padding:4px 0">Historial</th><th class="num" style="color:#888;font-size:11px;padding:4px 0">Total</th></tr>
+      <tr><td style="padding:5px 0;font-size:12px">Capital prestado</td><td class="num">${fmt(totalCapitalOriginal)}</td><td class="num">${fmt(histCapital)}</td><td class="num" style="font-weight:700">${fmt(totalCapAll)}</td></tr>
+      <tr><td style="padding:5px 0;font-size:12px;color:#1a7a4a">Intereses</td><td class="num" style="color:#1a7a4a">${fmt(totalInteresesCobrados+totalInteresesPorCobrar)}</td><td class="num" style="color:#1a7a4a">${fmt(histIntereses)}</td><td class="num" style="font-weight:700;color:#1a7a4a">${fmt(totalInteresesCobrados+totalInteresesPorCobrar+histIntereses)}</td></tr>
+      <tr><td style="padding:5px 0;font-size:12px;color:#1F497D">Cuotas administración</td><td class="num" style="color:#1F497D">${fmt(totalAdmCobradas+totalAdmPorCobrar)}</td><td class="num" style="color:#1F497D">${fmt(histAdm)}</td><td class="num" style="font-weight:700;color:#1F497D">${fmt(totalAdmCobradas+totalAdmPorCobrar+histAdm)}</td></tr>
+      <tr style="border-top:2px solid #dde3f0"><td style="padding:8px 0;font-weight:700;font-size:13px">GANANCIA TOTAL</td><td class="num" style="font-weight:700;color:#1a7a4a">${fmt(rendimientoActivo+rendimientoPorCobrar)}</td><td class="num" style="font-weight:700;color:#1a7a4a">${fmt(rendimientoHistorial)}</td><td class="num" style="font-weight:700;font-size:14px;color:#1a7a4a">${fmt(totalGanancia)}</td></tr>
+      <tr><td style="padding:4px 0;font-size:11px;color:#888">ROI estimado</td><td colspan="2"></td><td class="num" style="font-size:12px;color:#1a7a4a;font-weight:600">${totalCapAll>0?((totalGanancia/totalCapAll)*100).toFixed(1)+'%':'—'}</td></tr>
+    </table>`;
+
+  // ── Proyección próximos 6 meses ───────────────────────────
+  const hoy=new Date(); hoy.setDate(1);
+  const meses=[];
+  for(let i=0;i<6;i++){
+    const d2=new Date(hoy);d2.setMonth(hoy.getMonth()+i);
+    meses.push({y:d2.getFullYear(),m:d2.getMonth(),label:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][d2.getMonth()]+' '+d2.getFullYear(),total:0,interes:0,adm:0,capital:0});
+  }
+  prestamos.forEach(p=>{
+    generarAmortizacion(p).forEach(r=>{
+      const fd=new Date(r.fecha+'T12:00:00');
+      meses.forEach(mes=>{
+        if(fd.getFullYear()===mes.y && fd.getMonth()===mes.m){
+          mes.total+=r.total; mes.interes+=r.interes; mes.adm+=p.gadm; mes.capital+=r.capital;
+        }
+      });
+    });
+  });
+  const maxTotal=Math.max(...meses.map(m=>m.total),1);
+  document.getElementById('capital-proyeccion-body').innerHTML=meses.map(mes=>{
+    const pct=Math.round((mes.total/maxTotal)*100);
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+        <span style="font-weight:600">${mes.label}</span>
+        <span style="color:#1a7a4a;font-weight:700">${fmt(mes.total)}</span>
+      </div>
+      <div style="height:8px;background:#eef2f8;border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#1F497D,#2d6ab5);border-radius:4px"></div>
+      </div>
+      <div style="font-size:10px;color:#888;margin-top:2px">Cap: ${fmt(mes.capital)} · Int: ${fmt(mes.interes)} · Adm: ${fmt(mes.adm)}</div>
+    </div>`;
+  }).join('');
+
+  // ── Tabla por préstamo ────────────────────────────────────
+  document.getElementById('capital-tabla-body').innerHTML = filas.length===0
+    ? '<tr><td colspan="10" class="empty">No hay préstamos activos.</td></tr>'
+    : filas.map(f=>`<tr>
+        <td style="font-weight:600">${f.d?f.d.nombre:'?'}</td>
+        <td style="color:#888;font-size:11px">${f.d?f.d.empresa:''}</td>
+        <td class="num">${fmt(f.p.valor)}</td>
+        <td class="num" style="color:#1a7a4a">${fmt(f.capRecup)}</td>
+        <td class="num" style="color:#b05a00">${fmt(f.capPend)}</td>
+        <td class="num" style="color:#1a7a4a">${fmt(f.intCob)}</td>
+        <td class="num" style="color:#1F497D">${fmt(f.intPend)}</td>
+        <td class="num" style="color:#1a7a4a">${fmt(f.admCob)}</td>
+        <td class="num" style="color:#1F497D">${fmt(f.admPend)}</td>
+        <td style="min-width:80px">
+          <div style="font-size:10px;text-align:right;margin-bottom:2px;color:#888">${f.pct}% (${f.pagadas}/${f.p.plazo})</div>
+          <div style="height:6px;background:#dde3f0;border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${f.pct}%;background:linear-gradient(90deg,#1a7a4a,#2ecc71);border-radius:3px"></div>
+          </div>
+        </td>
+      </tr>`).join('');
+
+  // Totales tabla
+  document.getElementById('capital-tabla-foot').innerHTML=`<tr style="background:#f0f4ff;font-weight:700">
+    <td colspan="2">TOTALES ACTIVOS</td>
+    <td class="num">${fmt(totalCapitalOriginal)}</td>
+    <td class="num" style="color:#1a7a4a">${fmt(totalCapitalRecuperado)}</td>
+    <td class="num" style="color:#b05a00">${fmt(totalCapitalPendiente)}</td>
+    <td class="num" style="color:#1a7a4a">${fmt(totalInteresesCobrados)}</td>
+    <td class="num" style="color:#1F497D">${fmt(totalInteresesPorCobrar)}</td>
+    <td class="num" style="color:#1a7a4a">${fmt(totalAdmCobradas)}</td>
+    <td class="num" style="color:#1F497D">${fmt(totalAdmPorCobrar)}</td>
+    <td></td>
+  </tr>`;
+
+  // Sección historial
+  if(historial.length>0){
+    document.getElementById('capital-historial-section').innerHTML=`
+      <div class="section-title">Créditos finalizados (historial)</div>
+      <div class="metrics">
+        <div class="metric"><div class="label">Créditos cerrados</div><div class="value">${historial.length}</div></div>
+        <div class="metric"><div class="label">Capital recuperado</div><div class="value blue">${fmt(histCapital)}</div></div>
+        <div class="metric"><div class="label">Intereses recibidos</div><div class="value green">${fmt(histIntereses)}</div></div>
+        <div class="metric"><div class="label">Adm. recibidas</div><div class="value green">${fmt(histAdm)}</div></div>
+        <div class="metric"><div class="label">Total recibido</div><div class="value green">${fmt(histTotal)}</div></div>
+        <div class="metric"><div class="label">Ganancia neta historial</div><div class="value green">${fmt(histTotal-histCapital)}</div></div>
+      </div>`;
+  } else {
+    document.getElementById('capital-historial-section').innerHTML='';
+  }
+}
+
+function exportarCapital(){
+  const rows=[];
+  rows.push(['LIBRANZAYA — RESUMEN DE CAPITAL E INVERSIÓN']);
+  rows.push(['Fecha de corte:', new Date().toLocaleDateString('es-CO')]);
+  rows.push([]);
+  rows.push(['PRÉSTAMOS ACTIVOS']);
+  rows.push(['Deudor','Empresa','Capital original','Cap. recuperado','Cap. pendiente','Int. cobrados','Int. por cobrar','Adm. cobradas','Adm. por cobrar','% avance']);
+  prestamos.forEach(p=>{
+    const d=deudores.find(x=>x.id===p.deudorId);
+    const amort=generarAmortizacion(p);
+    const pg=pagos[p.id]||{};
+    let capR=0,capP=0,intC=0,intP=0,admC=0,admP=0;
+    amort.forEach(r=>{
+      const ok=pg[r.periodo]&&pg[r.periodo].pagado;
+      if(ok){capR+=r.capital;intC+=r.interes;admC+=p.gadm;}
+      else{capP+=r.capital;intP+=r.interes;admP+=p.gadm;}
+    });
+    const pagadas=Object.values(pg).filter(v=>v.pagado).length;
+    rows.push([d?d.nombre:'?',d?d.empresa:'',p.valor,+capR.toFixed(0),+capP.toFixed(0),+intC.toFixed(0),+intP.toFixed(0),+admC.toFixed(0),+admP.toFixed(0),Math.round((pagadas/p.plazo)*100)+'%']);
+  });
+  rows.push([]);
+  if(historial.length){
+    rows.push(['HISTORIAL (CRÉDITOS FINALIZADOS)']);
+    rows.push(['Deudor','Empresa','Capital','Intereses','Adm.','Total recibido','Ganancia']);
+    historial.forEach(h=>{
+      const amort=generarAmortizacion(h);
+      const int=amort.reduce((s,r)=>s+r.interes,0);
+      rows.push([h.deudorNombre||'',h.deudorEmpresa||'',h.valor,+int.toFixed(0),+(h.gadm*h.plazo).toFixed(0),+h.totalPagado.toFixed(0),+(h.totalPagado-h.valor).toFixed(0)]);
+    });
+  }
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:26},{wch:18},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws,'Mi Capital');
+  XLSX.writeFile(wb,'MiCapital_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('✓ Reporte de capital exportado');
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+cargarDatos();
+</script>
+</body>
+</html>
