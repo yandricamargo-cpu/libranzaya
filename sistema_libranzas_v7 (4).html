@@ -284,7 +284,7 @@ tr:hover td{background:#f8faff}
 // ══════════════════════════════════════════════════════════════
 // ESTADO Y PERSISTENCIA — Google Apps Script (nube)
 // ══════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycby6foWE8nat5eAtvucY1jPz6Kc21wWv27YhK0VM_BvR1TgjOmLkwIDz2a3h9Y-VDjKtvw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwsuPzH_dl3jiCbIKN6FhUoJlXa3RHjwH_kWN2xDbnDHL5XeLptzFGFlIFO4iTsspIBMQ/exec';
 
 let deudores=[], prestamos=[], historial=[];
 let pagos={};
@@ -300,18 +300,33 @@ function mostrarEstado(msg, color='#1F497D'){
   setTimeout(()=>ind.classList.remove('show'),3000);
 }
 
-async function apiCall(params){
+// GET — solo para cargar (datos pequeños)
+async function apiGet(params){
   const url=API_URL+'?'+params;
   const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
   const resp=await fetch(proxy);
+  if(!resp.ok) throw new Error('proxy error');
   const json=await resp.json();
+  if(!json.contents) throw new Error('empty');
   return JSON.parse(json.contents);
+}
+
+// POST — para guardar (datos grandes, sin límite de URL)
+async function apiPost(action, data){
+  const body=JSON.stringify({action, data: JSON.stringify(data)});
+  const resp=await fetch(API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body
+  });
+  if(!resp.ok) throw new Error('post error');
+  return resp.json();
 }
 
 async function cargarDatos(){
   mostrarEstado('⏳ Cargando desde la nube…','#b05a00');
   try{
-    const data=await apiCall('action=cargar');
+    const data=await apiGet('action=cargar');
     if(data.error) throw new Error(data.error);
     deudores=data.deudores||[];
     prestamos=data.prestamos||[];
@@ -344,10 +359,10 @@ function save(){
     _guardandoNube=true;
     mostrarEstado('☁️ Guardando…','#b05a00');
     try{
-      await apiCall('action=guardarD&data='+encodeURIComponent(JSON.stringify(deudores)));
-      await apiCall('action=guardarP&data='+encodeURIComponent(JSON.stringify(prestamos)));
-      await apiCall('action=guardarH&data='+encodeURIComponent(JSON.stringify(historial)));
-      await apiCall('action=guardarPG&data='+encodeURIComponent(JSON.stringify(pagos)));
+      await apiPost('guardarD', deudores);
+      await apiPost('guardarP', prestamos);
+      await apiPost('guardarH', historial);
+      await apiPost('guardarPG', pagos);
       mostrarEstado('✅ Guardado en la nube','#1a7a4a');
     }catch(e){
       mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
