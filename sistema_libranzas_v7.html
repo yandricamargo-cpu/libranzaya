@@ -300,11 +300,26 @@ function mostrarEstado(msg, color='#1F497D'){
   setTimeout(()=>ind.classList.remove('show'),3000);
 }
 
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='_cb'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      delete window[cb];script.remove();reject(new Error('timeout'));
+    },10000);
+    window[cb]=function(data){
+      clearTimeout(timeout);delete window[cb];script.remove();resolve(data);
+    };
+    script.src=url+'&callback='+cb;
+    script.onerror=()=>{clearTimeout(timeout);delete window[cb];script.remove();reject(new Error('error'));};
+    document.head.appendChild(script);
+  });
+}
+
 async function cargarDatos(){
   mostrarEstado('⏳ Cargando desde la nube…','#b05a00');
   try{
-    const resp=await fetch(API_URL+'?action=cargar');
-    const data=await resp.json();
+    const data=await jsonp(API_URL+'?action=cargar');
     if(data.error) throw new Error(data.error);
     deudores=data.deudores||[];
     prestamos=data.prestamos||[];
@@ -312,7 +327,6 @@ async function cargarDatos(){
     pagos=data.pagos||{};
     mostrarEstado('☁️ Datos cargados','#1a7a4a');
   }catch(e){
-    // fallback localStorage
     try{
       deudores=JSON.parse(localStorage.getItem('lib2_d')||'[]');
       prestamos=JSON.parse(localStorage.getItem('lib2_p')||'[]');
@@ -327,30 +341,49 @@ async function cargarDatos(){
 
 function save(){
   clearTimeout(saveTimer);
-  // Guardar en localStorage inmediatamente como respaldo
   try{
     localStorage.setItem('lib2_d',JSON.stringify(deudores));
     localStorage.setItem('lib2_p',JSON.stringify(prestamos));
     localStorage.setItem('lib2_h',JSON.stringify(historial));
     localStorage.setItem('lib2_pg',JSON.stringify(pagos));
   }catch(e){}
-  // Guardar en nube con debounce
   saveTimer=setTimeout(async()=>{
     if(_guardandoNube) return;
     _guardandoNube=true;
     mostrarEstado('☁️ Guardando…','#b05a00');
     try{
       const body=JSON.stringify({deudores,prestamos,historial,pagos});
-      const url=API_URL+'?action=guardar&data='+encodeURIComponent(body);
-      const resp=await fetch(url);
+      // Intentar POST primero
+      const resp=await fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({action:'guardar',data:body}),
+        headers:{'Content-Type':'text/plain'}
+      });
       const result=await resp.json();
       if(result.ok){
         mostrarEstado('✅ Guardado en la nube','#1a7a4a');
       } else {
-        mostrarEstado('⚠️ Error al guardar','#c0392b');
+        throw new Error('no ok');
       }
     }catch(e){
-      mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
+      // Fallback: JSONP GET
+      try{
+        const body2=JSON.stringify({deudores,prestamos,historial,pagos});
+        // Dividir en chunks si es muy grande
+        const url=API_URL+'?action=guardar&data='+encodeURIComponent(body2);
+        if(url.length<8000){
+          const result=await jsonp(url);
+          if(result.ok){
+            mostrarEstado('✅ Guardado en la nube','#1a7a4a');
+          } else {
+            mostrarEstado('⚠️ Error al guardar','#c0392b');
+          }
+        } else {
+          mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
+        }
+      }catch(e2){
+        mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
+      }
     }
     _guardandoNube=false;
   },800);
