@@ -284,7 +284,7 @@ tr:hover td{background:#f8faff}
 // ══════════════════════════════════════════════════════════════
 // ESTADO Y PERSISTENCIA — Google Apps Script (nube)
 // ══════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbw6YzPzrSX-L5O6amRLNDCi20mnpQnCkxrYIXxMAX4pWWzXvwbt93okisMpYn-usZodTg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyrVjjkyzItUnUXnuk-ag8zEr1ZBWZhMSkM6Hx_MoYXRSQmhpT2kfDZ8_w6oMCFHy5ukA/exec';
 
 let deudores=[], prestamos=[], historial=[];
 let pagos={};
@@ -300,20 +300,31 @@ function mostrarEstado(msg, color='#1F497D'){
   setTimeout(()=>ind.classList.remove('show'),3000);
 }
 
-async function apiCall(params){
-  const url=API_URL+'?'+params;
-  const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
-  const resp=await fetch(proxy);
-  if(!resp.ok) throw new Error('proxy error');
-  const json=await resp.json();
-  if(!json.contents) throw new Error('empty');
-  return JSON.parse(json.contents);
+function jsonpCall(params){
+  return new Promise((resolve,reject)=>{
+    const cb='_cb'+Date.now();
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{
+      delete window[cb];
+      document.body.removeChild(script);
+      reject(new Error('timeout'));
+    },10000);
+    window[cb]=function(data){
+      clearTimeout(timer);
+      delete window[cb];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.src=API_URL+'?'+params+'&callback='+cb;
+    script.onerror=()=>{clearTimeout(timer);delete window[cb];reject(new Error('script error'));};
+    document.body.appendChild(script);
+  });
 }
 
 async function cargarDatos(){
   mostrarEstado('⏳ Cargando desde la nube…','#b05a00');
   try{
-    const data=await apiCall('action=cargar');
+    const data=await jsonpCall('action=cargar');
     if(data.error) throw new Error(data.error);
     deudores=data.deudores||[];
     prestamos=data.prestamos||[];
@@ -346,11 +357,9 @@ function save(){
     _guardandoNube=true;
     mostrarEstado('☁️ Guardando…','#b05a00');
     try{
-      // Guardar todo en una sola llamada
-      const todo=encodeURIComponent(JSON.stringify({
-        deudores, prestamos, historial, pagos
-      }));
-      await apiCall('action=guardarTodo&data='+todo);
+      // Guardar via POST no-cors (evita CORS, fire-and-forget)
+      const body=JSON.stringify({action:'guardarTodo',data:{deudores,prestamos,historial,pagos}});
+      await fetch(API_URL,{method:'POST',mode:'no-cors',body});
       mostrarEstado('✅ Guardado en la nube','#1a7a4a');
     }catch(e){
       mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
