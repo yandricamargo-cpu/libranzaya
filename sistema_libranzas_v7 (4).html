@@ -308,7 +308,7 @@ function jsonpCall(params){
       delete window[cb];
       document.body.removeChild(script);
       reject(new Error('timeout'));
-    },10000);
+    },30000);
     window[cb]=function(data){
       clearTimeout(timer);
       delete window[cb];
