@@ -284,7 +284,7 @@ tr:hover td{background:#f8faff}
 // ══════════════════════════════════════════════════════════════
 // ESTADO Y PERSISTENCIA — Google Apps Script (nube)
 // ══════════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbwsuPzH_dl3jiCbIKN6FhUoJlXa3RHjwH_kWN2xDbnDHL5XeLptzFGFlIFO4iTsspIBMQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw6YzPzrSX-L5O6amRLNDCi20mnpQnCkxrYIXxMAX4pWWzXvwbt93okisMpYn-usZodTg/exec';
 
 let deudores=[], prestamos=[], historial=[];
 let pagos={};
@@ -300,8 +300,7 @@ function mostrarEstado(msg, color='#1F497D'){
   setTimeout(()=>ind.classList.remove('show'),3000);
 }
 
-// GET — solo para cargar (datos pequeños)
-async function apiGet(params){
+async function apiCall(params){
   const url=API_URL+'?'+params;
   const proxy='https://api.allorigins.win/get?url='+encodeURIComponent(url);
   const resp=await fetch(proxy);
@@ -311,22 +310,10 @@ async function apiGet(params){
   return JSON.parse(json.contents);
 }
 
-// POST — para guardar (datos grandes, sin límite de URL)
-async function apiPost(action, data){
-  const body=JSON.stringify({action, data: JSON.stringify(data)});
-  const resp=await fetch(API_URL,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body
-  });
-  if(!resp.ok) throw new Error('post error');
-  return resp.json();
-}
-
 async function cargarDatos(){
   mostrarEstado('⏳ Cargando desde la nube…','#b05a00');
   try{
-    const data=await apiGet('action=cargar');
+    const data=await apiCall('action=cargar');
     if(data.error) throw new Error(data.error);
     deudores=data.deudores||[];
     prestamos=data.prestamos||[];
@@ -359,10 +346,11 @@ function save(){
     _guardandoNube=true;
     mostrarEstado('☁️ Guardando…','#b05a00');
     try{
-      await apiPost('guardarD', deudores);
-      await apiPost('guardarP', prestamos);
-      await apiPost('guardarH', historial);
-      await apiPost('guardarPG', pagos);
+      // Guardar todo en una sola llamada
+      const todo=encodeURIComponent(JSON.stringify({
+        deudores, prestamos, historial, pagos
+      }));
+      await apiCall('action=guardarTodo&data='+todo);
       mostrarEstado('✅ Guardado en la nube','#1a7a4a');
     }catch(e){
       mostrarEstado('⚠️ Sin conexión, guardado local','#c0392b');
